@@ -1,0 +1,9 @@
+dwa_planner_node:
+  ros__parameters:
+    max_speed: 0.22
+    max_turn: 1.5
+    step_time: 0.1
+    sim_steps: 30.0
+    num_paths: 3000
+    goal_tolerance: 0.15
+    obstacle_clearance: 0.18
