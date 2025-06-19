@@ -48,3 +48,13 @@ colcon build --packages-select dwa_planner
 
 # Source the workspace
 source install/setup.bash
+
+#launch turtle bot in terminal 1
+export TURTLEBOT3_MODEL=burger
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+
+
+#lauch DWA planner in terminal 2
+source install/setup.bash
+ros2 launch dwa_planner dwa_planner.launch.py
+
