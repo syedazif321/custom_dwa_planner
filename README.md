@@ -32,6 +32,9 @@ This package provides a **fully custom Dynamic Window Approach (DWA)** local pla
 ## 📦 Installation
 
 ```bash
+# Create you directory
+mkdir -p robot_ws/src
+
 # Clone into your ROS 2 workspace
 cd ~/robot_ws/src
 git clone https://github.com/syedazif321/dwa_planner.git
