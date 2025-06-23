@@ -78,13 +78,11 @@ double DWAPlanner::calculateTrajectoryCost(const Trajectory& traj)
 {
   if (traj.poses.size() < 2) return 1e6;
 
-  // Goal distance cost
   const auto& last_pose = traj.poses.back();
   double dx = goal_.position.x - last_pose.position.x;
   double dy = goal_.position.y - last_pose.position.y;
   double goal_cost = std::sqrt(dx * dx + dy * dy);
 
-  // Path length (optional)
   double path_length = 0.0;
   for (size_t i = 1; i < traj.poses.size(); ++i) {
     double dx = traj.poses[i].position.x - traj.poses[i-1].position.x;
@@ -113,7 +111,7 @@ double DWAPlanner::calculateTrajectoryCost(const Trajectory& traj)
       double dist = std::hypot(px - ox, py - oy);
       if (dist < collision_threshold) {
         obstacle_cost += 1000.0; // Large penalty
-        break;  // No need to check more for this pose
+        break;  
       }
     }
   }
@@ -167,9 +165,11 @@ void DWAPlanner::publishTrajectoriesMarkers(const std::vector<Trajectory>& trajs
     }
 
     marker_array.markers.push_back(marker);
+    marker.lifetime = rclcpp::Duration::from_seconds(0.5); 
   }
 
   marker_pub_->publish(marker_array);
+
 }
 
 VelocitySample DWAPlanner::findBestVelocity()

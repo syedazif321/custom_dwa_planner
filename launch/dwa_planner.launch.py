@@ -16,7 +16,6 @@ def generate_launch_description():
             parameters=['config/params.yaml']
         ),
 
-        # Launch RViz with custom config
         Node(
             package='rviz2',
             executable='rviz2',
