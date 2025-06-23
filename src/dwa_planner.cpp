@@ -91,7 +91,7 @@ double DWAPlanner::calculateTrajectoryCost(const Trajectory& traj)
 
   // --- Obstacle avoidance using LaserScan ---
   double obstacle_cost = 0.0;
-  double collision_threshold = 0.3;
+  double collision_threshold = 0.2;
 
   for (const auto& pose : traj.poses) {
     double px = pose.position.x;
@@ -211,7 +211,7 @@ void DWAPlanner::timerCallback()
   double dy = goal_.position.y - current_pose_.position.y;
   double distance = std::hypot(dx, dy);
 
-  if (distance < 0.2) {
+  if (distance < 0.05) {
     RCLCPP_INFO(this->get_logger(), "Goal reached. Stopping.");
     cmd_vel_pub_->publish(geometry_msgs::msg::Twist());
     return;
