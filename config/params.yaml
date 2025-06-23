@@ -1,0 +1,6 @@
+dwa_planner:
+  ros__parameters:
+    max_vel: 0.22
+    max_w: 2.84
+    sim_time: 3.0    
+    dt: 0.05         

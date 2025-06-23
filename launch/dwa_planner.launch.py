@@ -1,33 +1,34 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.substitutions import LaunchConfiguration
-from launch.actions import DeclareLaunchArgument
-
-from launch_ros.substitutions import FindPackageShare
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
-    param_path = PathJoinSubstitution([
-        FindPackageShare("dwa_planner"), "config", "dwa_params.yaml"
-    ])
-    rviz_path = PathJoinSubstitution([
-        FindPackageShare("dwa_planner"), "rviz", "dwa_planner_config.rviz"
-    ])
-
     return LaunchDescription([
-        DeclareLaunchArgument('params', default_value=param_path),
+        # Launch your DWA planner node
         Node(
-            package='dwa_planner',
+            package='custom_dwa_planner',
             executable='dwa_planner_node',
-            name='dwa_planner_node',
-            parameters=[LaunchConfiguration('params')],
-            output='screen'
+            name='dwa_planner',
+            output='screen',
+            parameters=['config/params.yaml']
         ),
+
+        # Launch RViz with custom config
         Node(
             package='rviz2',
             executable='rviz2',
             name='rviz2',
-            arguments=['-d', rviz_path],
+            arguments=[
+                '-d',
+                PathJoinSubstitution([
+                    FindPackageShare('custom_dwa_planner'),
+                    'rviz',
+                    'dwa_markers.rviz'
+                ])
+            ],
             output='screen'
         )
     ])
