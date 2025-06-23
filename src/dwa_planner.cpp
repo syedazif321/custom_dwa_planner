@@ -1,8 +1,11 @@
 #include "dwa_planner.hpp"
 #include <cmath>
 #include <tf2/utils.h>
+#include <angles/angles.h>
+
 
 using namespace std::chrono_literals;
+
 
 DWAPlanner::DWAPlanner()
 : Node("dwa_planner"),
@@ -180,8 +183,20 @@ VelocitySample DWAPlanner::findBestVelocity()
   double min_w = std::max(-max_w_, current_angular_vel_ - max_ang_acc_ * dt_);
   double max_w = std::min(max_w_, current_angular_vel_ + max_ang_acc_ * dt_);
 
+  double dx = goal_.position.x - current_pose_.position.x;
+  double dy = goal_.position.y - current_pose_.position.y;
+  double distance = std::hypot(dx, dy);
+
+  double goal_yaw = tf2::getYaw(goal_.orientation);
+  double current_yaw = tf2::getYaw(current_pose_.orientation);
+  double yaw_error = angles::shortest_angular_distance(current_yaw, goal_yaw);
+
   for (double v = min_v; v <= max_v; v += 0.01) {
-    for (double w = min_w; w <= max_w; w += 0.1) {
+    for (double w = min_w; w <= max_w; w += 0.05) {
+
+      if (distance < 0.2 && std::fabs(yaw_error) > 1.0 && std::abs(w) < 0.2 && v > 0.01)
+        continue;
+
       Trajectory traj = simulateTrajectory(v, w);
       double cost = traj.cost;
 
@@ -200,6 +215,7 @@ VelocitySample DWAPlanner::findBestVelocity()
   return best_cmd;
 }
 
+
 void DWAPlanner::timerCallback()
 {
   if (!goal_received_) {
@@ -211,15 +227,32 @@ void DWAPlanner::timerCallback()
   double dy = goal_.position.y - current_pose_.position.y;
   double distance = std::hypot(dx, dy);
 
-  if (distance < 0.05) {
-    RCLCPP_INFO(this->get_logger(), "Goal reached. Stopping.");
+  double goal_yaw = tf2::getYaw(goal_.orientation);
+  double current_yaw = tf2::getYaw(current_pose_.orientation);
+  double yaw_error = angles::shortest_angular_distance(current_yaw, goal_yaw);
+
+  // If close to goal position, but large orientation error: rotate in place
+  if (distance < 0.1 && std::fabs(yaw_error) > 0.2) {
+    RCLCPP_INFO(this->get_logger(), "In-place rotation to adjust final heading.");
+    geometry_msgs::msg::Twist twist;
+    twist.linear.x = 0.0;
+    twist.angular.z = (yaw_error > 0) ? 0.3 : -0.3;
+    cmd_vel_pub_->publish(twist);
+    return;
+  }
+
+  // If goal is reached (position + orientation)
+  if (distance < 0.05 && std::fabs(yaw_error) < 0.1) {
+    RCLCPP_INFO(this->get_logger(), "Goal position and orientation reached. Stopping.");
     cmd_vel_pub_->publish(geometry_msgs::msg::Twist());
     return;
   }
 
+  // Otherwise, continue planning
   VelocitySample cmd = findBestVelocity();
   geometry_msgs::msg::Twist twist;
   twist.linear.x = cmd.v;
   twist.angular.z = cmd.w;
   cmd_vel_pub_->publish(twist);
 }
+

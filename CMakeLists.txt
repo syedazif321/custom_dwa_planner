@@ -14,6 +14,8 @@ find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(angles REQUIRED)
+
 
 include_directories(include)
 
@@ -30,6 +32,7 @@ ament_target_dependencies(dwa_planner_node
   tf2
   tf2_geometry_msgs
   visualization_msgs
+  angles
 )
 
 install(TARGETS dwa_planner_node DESTINATION lib/${PROJECT_NAME})
